@@ -102,19 +102,19 @@ const RESERVED_WORDS = [
   'with'
 ];
 
-const isReserved = value => RESERVED_WORDS.includes(value.toLowerCase());
+const isReserved = (value) => RESERVED_WORDS.includes(value.toLowerCase());
 
 // usually the AST lowercases all the things, so if we
 // have both, the author most likely used double quotes
-const needsQuotes = value =>
+const needsQuotes = (value) =>
   value.match(/[a-z]+[\W\w]*[A-Z]+|[A-Z]+[\W\w]*[a-z]+/) ||
   value.match(/\W/) ||
   isReserved(value);
 
 const { keys } = _;
 
-const compact = o => {
-  return _.filter(_.compact(o), p => {
+const compact = (o) => {
+  return _.filter(_.compact(o), (p) => {
     if (p == null) {
       return false;
     }
@@ -123,7 +123,7 @@ const compact = o => {
   });
 };
 
-const parens = string => {
+const parens = (string) => {
   return '(' + string + ')';
 };
 
@@ -139,11 +139,11 @@ export default class Deparser {
   }
 
   deparseQuery() {
-    return this.tree.map(node => `${this.deparse(node)};`).join('\n\n');
+    return this.tree.map((node) => `${this.deparse(node)};`).join('\n\n');
   }
 
   deparseNodes(nodes, context) {
-    return nodes.map(node => {
+    return nodes.map((node) => {
       return _.isArray(node) ? this.list(node) : this.deparse(node, context);
     });
   }
@@ -154,14 +154,14 @@ export default class Deparser {
     }
 
     return this.deparseNodes(nodes)
-      .map(l => `${prefix}${l}`)
+      .map((l) => `${prefix}${l}`)
       .join(separator);
   }
 
   listQuotes(nodes, separator = ', ') {
     return this.list(nodes, separator)
       .split(separator)
-      .map(a => this.quote(a.trim()))
+      .map((a) => this.quote(a.trim()))
       .join(separator);
   }
 
@@ -171,7 +171,7 @@ export default class Deparser {
     }
 
     if (_.isArray(value)) {
-      return value.map(o => this.quote(o));
+      return value.map((o) => this.quote(o));
     }
 
     if (needsQuotes(value)) {
@@ -234,7 +234,7 @@ export default class Deparser {
   }
 
   type(names, args) {
-    const [ catalog, type ] = names.map(name => this.deparse(name));
+    const [catalog, type] = names.map((name) => this.deparse(name));
 
     const mods = (name, size) => {
       if (size != null) {
@@ -516,7 +516,7 @@ export default class Deparser {
   ['Alias'](node, context) {
     const name = node.aliasname;
 
-    const output = [ 'AS' ];
+    const output = ['AS'];
 
     if (node.colnames) {
       output.push(this.quote(name) + parens(this.listQuotes(node.colnames)));
@@ -552,7 +552,7 @@ export default class Deparser {
   }
 
   ['A_Indirection'](node) {
-    const output = [ `(${this.deparse(node.arg)})` ];
+    const output = [`(${this.deparse(node.arg)})`];
 
     // TODO(zhm) figure out the actual rules for when a '.' is needed
     //
@@ -618,7 +618,7 @@ export default class Deparser {
   }
 
   ['CaseExpr'](node) {
-    const output = [ 'CASE' ];
+    const output = ['CASE'];
 
     if (node.arg) {
       output.push(this.deparse(node.arg));
@@ -694,7 +694,7 @@ export default class Deparser {
   }
 
   ['ColumnDef'](node) {
-    const output = [ this.quote(node.colname) ];
+    const output = [this.quote(node.colname)];
 
     output.push(this.deparse(node.typeName));
 
@@ -736,8 +736,8 @@ export default class Deparser {
   }
 
   ['ColumnRef'](node, context) {
-    const KEYWORDS = [ 'old', 'new' ];
-    const fields = node.fields.map(field => {
+    const KEYWORDS = ['old', 'new'];
+    const fields = node.fields.map((field) => {
       if (field.String) {
         const value = this.deparse(field);
         if (context === 'trigger' && KEYWORDS.includes(value.toLowerCase())) {
@@ -884,7 +884,7 @@ export default class Deparser {
     if (context === 'sequence') {
       switch (name) {
         case 'cycle': {
-          const on = (this.deparse(node.arg) + '') === '1';
+          const on = this.deparse(node.arg) + '' === '1';
           return on ? 'CYCLE' : 'NO CYCLE';
         }
         default:
@@ -921,7 +921,7 @@ export default class Deparser {
     let params = [];
 
     if (node.args) {
-      params = node.args.map(item => {
+      params = node.args.map((item) => {
         return this.deparse(item);
       });
     }
@@ -1105,7 +1105,7 @@ export default class Deparser {
   }
 
   ['DeleteStmt'](node) {
-    const output = [ '' ];
+    const output = [''];
     output.push('DELETE');
     output.push('FROM');
     output.push(this.deparse(node.relation));
@@ -1129,22 +1129,24 @@ export default class Deparser {
         node.targetList[0].ResTarget.val.MultiAssignRef
       ) {
         output.push('(');
-        output.push(node.targetList.map(target => target.ResTarget.name).join(','));
+        output.push(
+          node.targetList.map((target) => target.ResTarget.name).join(',')
+        );
         output.push(')');
         output.push('=');
         output.push(this.deparse(node.targetList[0].ResTarget.val));
       } else {
         output.push(
-          node.targetList.map(
-            (target) => this.deparse(target, 'update')
-          ).join(',')
+          node.targetList
+            .map((target) => this.deparse(target, 'update'))
+            .join(',')
         );
       }
     }
 
     if (node.fromClause) {
       output.push('FROM');
-      output.push(node.fromClause.map(from => this.deparse(from)));
+      output.push(node.fromClause.map((from) => this.deparse(from)));
     }
 
     if (node.whereClause) {
@@ -1154,9 +1156,17 @@ export default class Deparser {
 
     if (node.returningList) {
       output.push('RETURNING');
-      output.push(node.returningList.map(returning =>
-        this.deparse(returning.ResTarget.val) +
-          (returning.ResTarget.name ? ' AS ' + this.quote(returning.ResTarget.name) : '')).join(','));
+      output.push(
+        node.returningList
+          .map(
+            (returning) =>
+              this.deparse(returning.ResTarget.val) +
+              (returning.ResTarget.name
+                ? ' AS ' + this.quote(returning.ResTarget.name)
+                : '')
+          )
+          .join(',')
+      );
     }
 
     return output.join(' ');
@@ -1302,7 +1312,7 @@ export default class Deparser {
   }
 
   ['NullTest'](node) {
-    const output = [ this.deparse(node.arg) ];
+    const output = [this.deparse(node.arg)];
 
     if (node.nulltesttype === 0) {
       output.push('IS NULL');
@@ -1315,7 +1325,7 @@ export default class Deparser {
 
   ['ParamRef'](node) {
     if (node.number >= 0) {
-      return [ '$', node.number ].join('');
+      return ['$', node.number].join('');
     }
     return '?';
   }
@@ -1331,7 +1341,7 @@ export default class Deparser {
 
     for (let i = 0; i < node.functions.length; i++) {
       const funcCall = node.functions[i];
-      const call = [ this.deparse(funcCall[0]) ];
+      const call = [this.deparse(funcCall[0])];
 
       if (funcCall[1] && funcCall[1].length) {
         call.push(format('AS (%s)', this.list(funcCall[1])));
@@ -1433,11 +1443,11 @@ export default class Deparser {
 
   ['ResTarget'](node, context) {
     if (context === 'select') {
-      return compact([ this.deparse(node.val), this.quote(node.name) ]).join(
+      return compact([this.deparse(node.val), this.quote(node.name)]).join(
         ' AS '
       );
     } else if (context === 'update') {
-      return compact([ node.name, this.deparse(node.val) ]).join(' = ');
+      return compact([node.name, this.deparse(node.val)]).join(' = ');
     } else if (!(node.val != null)) {
       return this.quote(node.name);
     }
@@ -1476,7 +1486,7 @@ export default class Deparser {
     } else {
       output.push(parens(this.deparse(node.larg)));
 
-      const sets = [ 'NONE', 'UNION', 'INTERSECT', 'EXCEPT' ];
+      const sets = ['NONE', 'UNION', 'INTERSECT', 'EXCEPT'];
 
       output.push(sets[node.op]);
 
@@ -1492,7 +1502,7 @@ export default class Deparser {
         output.push('DISTINCT ON');
 
         const clause = node.distinctClause
-          .map(e => this.deparse(e, 'select'))
+          .map((e) => this.deparse(e, 'select'))
           .join(',\n');
 
         output.push(`(${clause})`);
@@ -1503,7 +1513,9 @@ export default class Deparser {
 
     if (node.targetList) {
       output.push(
-        indent(node.targetList.map(e => this.deparse(e, 'select')).join(',\n'))
+        indent(
+          node.targetList.map((e) => this.deparse(e, 'select')).join(',\n')
+        )
       );
     }
 
@@ -1515,7 +1527,7 @@ export default class Deparser {
     if (node.fromClause) {
       output.push('FROM');
       output.push(
-        indent(node.fromClause.map(e => this.deparse(e, 'from')).join(',\n'))
+        indent(node.fromClause.map((e) => this.deparse(e, 'from')).join(',\n'))
       );
     }
 
@@ -1527,7 +1539,7 @@ export default class Deparser {
     if (node.valuesLists) {
       output.push('VALUES');
 
-      const lists = node.valuesLists.map(list => {
+      const lists = node.valuesLists.map((list) => {
         return `(${this.list(list)})`;
       });
 
@@ -1537,7 +1549,9 @@ export default class Deparser {
     if (node.groupClause) {
       output.push('GROUP BY');
       output.push(
-        indent(node.groupClause.map(e => this.deparse(e, 'group')).join(',\n'))
+        indent(
+          node.groupClause.map((e) => this.deparse(e, 'group')).join(',\n')
+        )
       );
     }
 
@@ -1570,7 +1584,7 @@ export default class Deparser {
     if (node.sortClause) {
       output.push('ORDER BY');
       output.push(
-        indent(node.sortClause.map(e => this.deparse(e, 'sort')).join(',\n'))
+        indent(node.sortClause.map((e) => this.deparse(e, 'sort')).join(',\n'))
       );
     }
 
@@ -1585,7 +1599,7 @@ export default class Deparser {
     }
 
     if (node.lockingClause) {
-      node.lockingClause.forEach(item => {
+      node.lockingClause.forEach((item) => {
         return output.push(this.deparse(item));
       });
     }
@@ -1600,7 +1614,7 @@ export default class Deparser {
     const options = dotty.get(node, 'options');
 
     if (options) {
-      const elem = node.options.find(el => el.hasOwnProperty('DefElem'));
+      const elem = node.options.find((el) => el.hasOwnProperty('DefElem'));
 
       if (elem.DefElem.defname === 'schemas') {
         output.push('IN SCHEMA');
@@ -1799,7 +1813,7 @@ export default class Deparser {
     output.push(this.list(node.typeName, '.'));
     output.push('AS ENUM');
     output.push('(\n');
-    const vals = node.vals.map(val => {
+    const vals = node.vals.map((val) => {
       return { String: { str: `'${val.String.str}'` } };
     });
     output.push(this.list(vals, ',\n', '\t'));
@@ -1815,7 +1829,7 @@ export default class Deparser {
     }
     output.push(this.quote(node.extname));
     if (node.options) {
-      node.options.forEach(opt => {
+      node.options.forEach((opt) => {
         if (
           opt.DefElem.defname === 'cascade' &&
           opt.DefElem.arg.Integer.ival === 1
@@ -1887,7 +1901,7 @@ export default class Deparser {
     output.push(this.deparse(node.sequence));
     if (node.options && node.options.length) {
       // console.log(node.options);
-      node.options.forEach(opt => {
+      node.options.forEach((opt) => {
         output.push(this.deparse(opt, 'sequence'));
       });
     }
@@ -2009,11 +2023,7 @@ export default class Deparser {
     }
 
     output.push('EXECUTE PROCEDURE');
-    output.push(
-      this.listQuotes(node.funcname)
-        .split(',')
-        .join('.')
-    );
+    output.push(this.listQuotes(node.funcname).split(',').join('.'));
     output.push('(');
     let args = [];
     if (node.args) {
@@ -2021,13 +2031,13 @@ export default class Deparser {
     }
     // seems that it's only parsing strings?
     args = args
-      .map(arg => {
+      .map((arg) => {
         if (dotty.exists(arg, 'String.str')) {
           return `'${dotty.get(arg, 'String.str')}'`;
         }
         return this.deparse(arg);
       })
-      .filter(a => a);
+      .filter((a) => a);
     output.push(args.join(','));
     output.push(')');
 
@@ -2068,7 +2078,7 @@ export default class Deparser {
     }
 
     if (node.options) {
-      node.options.forEach(opt => {
+      node.options.forEach((opt) => {
         if (dotty.get(opt, 'DefElem.defname') === 'oids') {
           if (Number(dotty.get(opt, 'DefElem.arg.Integer.ival')) === 1) {
             output.push('WITH OIDS');
@@ -2140,7 +2150,7 @@ export default class Deparser {
     const output = [];
     function getExclusionGroup(nde) {
       const out = [];
-      const a = nde.exclusions.map(excl => {
+      const a = nde.exclusions.map((excl) => {
         if (excl[0].IndexElem.name) {
           return excl[0].IndexElem.name;
         }
@@ -2149,7 +2159,7 @@ export default class Deparser {
           : null;
       });
 
-      const b = nde.exclusions.map(excl => this.deparse(excl[1][0]));
+      const b = nde.exclusions.map((excl) => this.deparse(excl[1][0]));
 
       for (let i = 0; i < a.length; i++) {
         out.push(`${a[i]} WITH ${b[i]}`);
@@ -2355,11 +2365,11 @@ export default class Deparser {
     }
     output.push('FUNCTION');
 
-    output.push(node.funcname.map(name => this.deparse(name)).join('.'));
+    output.push(node.funcname.map((name) => this.deparse(name)).join('.'));
     output.push('(');
     let parameters = [];
     if (node.parameters) {
-      parameters = [ ...node.parameters ];
+      parameters = [...node.parameters];
     }
     const parametersList = parameters.filter(
       ({ FunctionParameter }) =>
@@ -2446,7 +2456,7 @@ export default class Deparser {
             if (
               dotty.get(option, 'DefElem.arg.VariableSetStmt.kind') === 2 &&
               dotty.get(option, 'DefElem.arg.VariableSetStmt.name') ===
-              'search_path'
+                'search_path'
             ) {
               output.push('SET search_path FROM CURRENT');
             } else {
@@ -2501,7 +2511,7 @@ export default class Deparser {
   ['GrantStmt'](node) {
     const output = [];
 
-    const getTypeFromNode = nodeObj => {
+    const getTypeFromNode = (nodeObj) => {
       switch (nodeObj.objtype) {
         case GRANTOBJECT_TYPES.ACL_OBJECT_RELATION:
           if (nodeObj.targtype === GRANTTARGET_TYPES.ACL_TARGET_ALL_IN_SCHEMA) {
@@ -2707,7 +2717,7 @@ export default class Deparser {
   ['TransactionStmt'](node) {
     const output = [];
 
-    const begin = nodeOpts => {
+    const begin = (nodeOpts) => {
       const opts = dotty.search(nodeOpts, 'options.*.DefElem.defname');
       if (opts.includes('transaction_read_only')) {
         const index = opts.indexOf('transaction_read_only');
@@ -2734,7 +2744,7 @@ export default class Deparser {
       return 'BEGIN';
     };
 
-    const start = nodeOpts => {
+    const start = (nodeOpts) => {
       const opts = dotty.search(nodeOpts, 'options.*.DefElem.defname');
       if (opts.includes('transaction_read_only')) {
         const index = opts.indexOf('transaction_read_only');
@@ -2835,7 +2845,7 @@ export default class Deparser {
       output.push('(');
       output.push(
         node.objargs
-          .map(arg => {
+          .map((arg) => {
             if (arg === null) {
               return 'NONE';
             }
@@ -2929,7 +2939,7 @@ export default class Deparser {
     let args = null;
 
     if (node.typmods != null) {
-      args = node.typmods.map(item => {
+      args = node.typmods.map((item) => {
         return this.deparse(item);
       });
     }
@@ -2948,7 +2958,7 @@ export default class Deparser {
   }
 
   ['CaseWhen'](node) {
-    const output = [ 'WHEN' ];
+    const output = ['WHEN'];
 
     output.push(this.deparse(node.expr));
     output.push('THEN');
@@ -2990,9 +3000,9 @@ export default class Deparser {
     let useParens = false;
 
     if (node.partitionClause) {
-      const partition = [ 'PARTITION BY' ];
+      const partition = ['PARTITION BY'];
 
-      const clause = node.partitionClause.map(item => this.deparse(item));
+      const clause = node.partitionClause.map((item) => this.deparse(item));
 
       partition.push(clause.join(', '));
 
@@ -3003,7 +3013,7 @@ export default class Deparser {
     if (node.orderClause) {
       windowParts.push('ORDER BY');
 
-      const orders = node.orderClause.map(item => {
+      const orders = node.orderClause.map((item) => {
         return this.deparse(item);
       });
 
@@ -3025,7 +3035,7 @@ export default class Deparser {
   }
 
   ['WithClause'](node) {
-    const output = [ 'WITH' ];
+    const output = ['WITH'];
 
     if (node.recursive) {
       output.push('RECURSIVE');
@@ -3124,14 +3134,14 @@ export default class Deparser {
   }
 
   deparseInterval(node) {
-    const type = [ 'interval' ];
+    const type = ['interval'];
 
     if (node.arrayBounds != null) {
       type.push('[]');
     }
 
     if (node.typmods) {
-      const typmods = node.typmods.map(item => this.deparse(item));
+      const typmods = node.typmods.map((item) => this.deparse(item));
 
       let intervals = this.interval(typmods[0]);
 
@@ -3143,9 +3153,9 @@ export default class Deparser {
         node.typmods[1] &&
         node.typmods[1].A_Const != null
       ) {
-        intervals = [ `(${node.typmods[1].A_Const.val.Integer.ival})` ];
+        intervals = [`(${node.typmods[1].A_Const.val.Integer.ival})`];
       } else {
-        intervals = intervals.map(part => {
+        intervals = intervals.map((part) => {
           if (part === 'second' && typmods.length === 2) {
             return 'second(' + _.last(typmods) + ')';
           }
@@ -3202,12 +3212,12 @@ export default class Deparser {
 
     if (this.INTERVALS == null) {
       this.INTERVALS = {};
-      this.INTERVALS[1 << this.BITS.YEAR] = [ 'year' ];
-      this.INTERVALS[1 << this.BITS.MONTH] = [ 'month' ];
-      this.INTERVALS[1 << this.BITS.DAY] = [ 'day' ];
-      this.INTERVALS[1 << this.BITS.HOUR] = [ 'hour' ];
-      this.INTERVALS[1 << this.BITS.MINUTE] = [ 'minute' ];
-      this.INTERVALS[1 << this.BITS.SECOND] = [ 'second' ];
+      this.INTERVALS[1 << this.BITS.YEAR] = ['year'];
+      this.INTERVALS[1 << this.BITS.MONTH] = ['month'];
+      this.INTERVALS[1 << this.BITS.DAY] = ['day'];
+      this.INTERVALS[1 << this.BITS.HOUR] = ['hour'];
+      this.INTERVALS[1 << this.BITS.MINUTE] = ['minute'];
+      this.INTERVALS[1 << this.BITS.SECOND] = ['second'];
       this.INTERVALS[(1 << this.BITS.YEAR) | (1 << this.BITS.MONTH)] = [
         'year',
         'month'
@@ -3218,22 +3228,22 @@ export default class Deparser {
       ];
       this.INTERVALS[
         (1 << this.BITS.DAY) | (1 << this.BITS.HOUR) | (1 << this.BITS.MINUTE)
-      ] = [ 'day', 'minute' ];
+      ] = ['day', 'minute'];
       this.INTERVALS[
         (1 << this.BITS.DAY) |
-        (1 << this.BITS.HOUR) |
-        (1 << this.BITS.MINUTE) |
-        (1 << this.BITS.SECOND)
-      ] = [ 'day', 'second' ];
+          (1 << this.BITS.HOUR) |
+          (1 << this.BITS.MINUTE) |
+          (1 << this.BITS.SECOND)
+      ] = ['day', 'second'];
       this.INTERVALS[(1 << this.BITS.HOUR) | (1 << this.BITS.MINUTE)] = [
         'hour',
         'minute'
       ];
       this.INTERVALS[
         (1 << this.BITS.HOUR) |
-        (1 << this.BITS.MINUTE) |
-        (1 << this.BITS.SECOND)
-      ] = [ 'hour', 'second' ];
+          (1 << this.BITS.MINUTE) |
+          (1 << this.BITS.SECOND)
+      ] = ['hour', 'second'];
       this.INTERVALS[(1 << this.BITS.MINUTE) | (1 << this.BITS.SECOND)] = [
         'minute',
         'second'

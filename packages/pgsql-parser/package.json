@@ -69,6 +69,6 @@
     "@babel/runtime": "^7.4.2",
     "dotty": "^0.1.0",
     "lodash": "^4.13.1",
-    "@pyramation/pg-query-native-nlts": "1.1.4"
+    "pg-plpgsql-query-native": "1.2.1"
   }
 }
