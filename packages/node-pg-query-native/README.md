@@ -14,7 +14,8 @@ cd libpg_query
 make
 ```
 
-Then get the `.a` file and drop it in the folder in this repo.
+* Then get the `.a` file and drop it in the folder in this repo.
+* get the header files too, those can change!
 
 ## Installation
 
