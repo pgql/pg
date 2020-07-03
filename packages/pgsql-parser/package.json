@@ -1,6 +1,6 @@
 {
   "name": "@pyramation/pgsql-parser-plpgsql",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "pgsql parser",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "homepage": "https://github.com/pyramation/pg/tree/master/packages/pgsql-parser#readme",
