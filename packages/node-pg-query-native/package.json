@@ -1,0 +1,35 @@
+{
+  "name": "@pyramation/pg-query-native-nlts",
+  "version": "1.1.4",
+  "description": "The real PostgreSQL query parser",
+  "homepage": "http://github.com/zhm/node-pg-query-native",
+  "main": "index.js",
+  "scripts": {
+    "configure": "./node_modules/node-gyp/bin/node-gyp.js configure",
+    "build": "./node_modules/node-gyp/bin/node-gyp.js configure build",
+    "rebuild": "./node_modules/node-gyp/bin/node-gyp.js configure rebuild",
+    "test": "mocha"
+  },
+  "author": "Zac McCormick <zac.mccormick@gmail.com> (http://github.com/zhm)",
+  "license": "BSD",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/zhm/node-pg-query-native.git"
+  },
+  "devDependencies": {
+    "mocha": "^8.0.1"
+  },
+  "dependencies": {
+    "bindings": "^1.2.1",
+    "nan": "^2.3.5",
+    "node-gyp": "^7.0.0"
+  },
+  "keywords": [
+    "sql",
+    "postgres",
+    "postgresql",
+    "pg",
+    "query",
+    "database"
+  ]
+}
