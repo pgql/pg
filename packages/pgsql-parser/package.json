@@ -1,5 +1,5 @@
 {
-  "name": "@pyramation/pgsql-parser",
+  "name": "@pyramation/pgsql-parser-plpgsql",
   "version": "0.0.1",
   "description": "pgsql parser",
   "author": "Dan Lynch <pyramation@gmail.com>",
